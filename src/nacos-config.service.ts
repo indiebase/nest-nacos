@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { NacosConfigClient } from 'nacos';
 import * as stripJsonComments from 'strip-json-comments';
-import { NacosConfigClientOptions } from './nacos-config.interface';
+import { DataParser, NacosConfigClientOptions } from './nacos-config.interface';
 export interface SubOptions {
   dataId: string;
   group: string;
@@ -31,7 +31,7 @@ export interface StripJsonCommentsOptions {
 export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
   #client: NacosConfigClient;
 
-  #parser!: (data: string | string[], ...args: any[]) => any;
+  #parser!: DataParser;
 
   #DEFAULT_GROUP = 'DEFAULT_GROUP';
 
@@ -52,7 +52,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     if (this.#client) {
-      await (this.#client as any).close();
+      await this.#client.close();
       this.#client = null;
     }
   }
@@ -65,9 +65,14 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
     return JSON.parse(stripJsonComments(data, options));
   }
 
+  public setDataParser(parser: DataParser) {
+    this.#parser = parser;
+    return this;
+  }
+
   public async getConfig<T = any>(
     dataId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<T> {
     const data = await this.#client.getConfig(dataId, group, options);
@@ -77,7 +82,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
   public async publishSingle(
     dataId: string,
     content: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<boolean> {
     return this.#client.publishSingle(dataId, group, content, options);
@@ -86,21 +91,21 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
   public async publishToAllUnit(
     dataId: string,
     content: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
   ): Promise<boolean> {
     return this.#client.publishToAllUnit(dataId, group, content);
   }
 
   public async removeToAllUnit(
     dataId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
   ): Promise<boolean> {
     return this.#client.removeToAllUnit(dataId, group);
   }
 
   public async batchGetConfig(
     dataId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<Record<string, any>> {
     return this.#client.batchGetConfig(dataId, group, options);
@@ -108,7 +113,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
 
   public async batchQuery(
     dataId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<Record<string, any>> {
     return this.#client.batchQuery(dataId, group, options);
@@ -116,7 +121,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
 
   public async remove(
     dataId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<boolean> {
     return this.#client.remove(dataId, group, options);
@@ -148,7 +153,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
     dataId: string,
     datumId: string,
     content: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<boolean> {
     return this.#client.publishAggr(dataId, group, datumId, content, options);
@@ -157,7 +162,7 @@ export class NacosConfigService implements OnModuleInit, OnModuleDestroy {
   public async removeAggr(
     dataId: string,
     datumId: string,
-    group: any = this.#DEFAULT_GROUP,
+    group = this.#DEFAULT_GROUP,
     options?: Options,
   ): Promise<boolean> {
     return this.#client.removeAggr(dataId, group, datumId, options);

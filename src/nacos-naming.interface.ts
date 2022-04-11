@@ -109,4 +109,6 @@ export interface NacosNamingClient extends Base {
       | { serviceName: string; group?: string; clusters?: string },
     listener?: (...args: any) => void,
   ): void;
+
+  close(): void;
 }

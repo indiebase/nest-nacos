@@ -34,7 +34,7 @@ export class NacosNamingService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await (this.#client as any).close();
+    await this.#client.close();
   }
 
   public get client() {
@@ -46,7 +46,7 @@ export class NacosNamingService implements OnModuleInit, OnModuleDestroy {
     instance: NacosNamingInstanceOptions,
     group?: string,
   ) {
-    this.#logger.log(`Registe service instance: ${serviceName}`);
+    this.#logger.log(`Register service instance: ${serviceName}`);
     return this.#client.registerInstance(
       serviceName,
       instance,
